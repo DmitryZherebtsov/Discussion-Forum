@@ -4,7 +4,7 @@ from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 
 
-class RegitratioinForm(FlaskForm):
+class RegitrationForm(FlaskForm):
     #validation of the form inside validators[]
     username = StringField('Username', validators=[ # перше значення це label, в другому додаю валідатори
         DataRequired(), 

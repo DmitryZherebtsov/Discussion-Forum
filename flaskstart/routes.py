@@ -1,12 +1,8 @@
-from flask import Flask # імпорт класу Flask з бібліотеки flask
-from flask import render_template
-from flask import url_for
-from forms import RegitratioinForm, LoginForm
 
-
-app = Flask(__name__) # екземпляр застосунку під назвою app
-
-app.config['SECRET_KEY'] = 'ce9b10bbc3ba4db3e0b1b5274d1a0517'
+from flaskstart.models import User, Post #IMPORTANT TO PUT THIS IMPORT AFTER DEFINING db variable
+from flask import Flask, render_template, url_for, flash, redirect
+from flaskstart.forms import RegitrationForm, LoginForm
+from flaskstart import app
 
 postsByUsers = [
     {
@@ -38,16 +34,19 @@ def about():
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
-    form = RegitratioinForm()
+    form = RegitrationForm()
+    if form.validate_on_submit():
+        flash(f'Account created for {form.username.data}!', 'success')
+        return redirect(url_for('home'))
     return render_template('register.html', title='Register', form=form)
 
-@app.route("/login")
+@app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
+    if form.validate_on_submit():
+        if form.email.data == 'admin@gmail.com' and form.password.data == '123':
+            flash(f'You have been logged in by this email: {form.email.data}!', 'success')
+            return redirect(url_for('home'))
+        else:
+            flash('Login Failed, check your Data!', 'danger')
     return render_template('login.html', title='Login', form=form)
-
-
-if __name__ == "__main__": # перевірка того чи запускаємо ми сервак на пряму 
-    app.run(debug=True) # запускає сервер і виводить дебаг у браузер, також реагує на зміни
-else:
-    print("Сервер НЕ ЗАПУСТИВСЯ!")
