@@ -1,6 +1,8 @@
-from flaskstart import app
+from flaskstart import app, db
 
 if __name__ == "__main__": # перевірка того чи запускаємо ми сервак на пряму 
     app.run(debug=True) # запускає сервер і виводить дебаг у браузер, також реагує на зміни
 else:
     print("Сервер НЕ ЗАПУСТИВСЯ!")
+
+
