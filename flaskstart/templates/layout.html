@@ -13,7 +13,7 @@
         {% if title %}
             <title>Flask - {{title}}</title>
         {% else %}
-            <title>Flask Blog by default</title>
+            <title>Python Flask Blog by default</title>
         {% endif %}
 
     </head>
@@ -35,6 +35,7 @@
                   <!-- Navbar Right Side -->
                   <div class="navbar-nav">
                     {% if current_user.is_authenticated %}
+                    <a class="nav-item nav-link" href="{{ url_for('account') }}">Account</a>
                       <a class="nav-item nav-link" href="{{ url_for('logout') }}">Log Out</a>
                     {% else %}
                       <a class="nav-item nav-link" href="{{ url_for('login') }}">Login</a>

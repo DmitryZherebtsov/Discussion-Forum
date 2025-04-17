@@ -1,0 +1,12 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+        <h1>Welcome to our page {{ current_user.username }}!</h1>
+        <br>
+        <h3>Wanna change your data?</h3>
+        <h4>Email:</h4>
+        <p><i>{{ current_user.email }}</i></p>
+        <h4>Hashed Password:</h4>
+        <p><i>{{ current_user.password }}</i></p>
+{% endblock content %}

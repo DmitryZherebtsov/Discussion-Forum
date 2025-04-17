@@ -1,9 +1,9 @@
 
 from flaskstart.models import User, Post #IMPORTANT TO PUT THIS IMPORT AFTER DEFINING db variable
-from flask import Flask, render_template, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect
 from flaskstart.forms import RegitrationForm, LoginForm
 from flaskstart import app, db, bcrypt
-from flask_login import login_user, current_user, logout_user
+from flask_login import login_user, current_user, logout_user, login_required
 
 postsByUsers = [
     {
@@ -55,7 +55,9 @@ def login():
         user = User.query.filter_by(email=form.email.data).first() # беру першого юзера по мейлу який він ввів
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
-            return redirect(url_for('home'))
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('home'))
+                                    #  if next_page not none
         else:
             flash('Login Failed, check your email and password!', 'danger')
     return render_template('login.html', title='Login', form=form)
@@ -66,3 +68,14 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+
+@app.route("/account")
+@login_required
+def account():
+    return render_template('account.html', title='Account')
+    # if current_user.is_authenticated:
+    #     return render_template('account.html', title='Account')
+    # else:
+    #     return redirect(url_for('login'))
+    
