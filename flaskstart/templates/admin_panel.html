@@ -1,0 +1,28 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+        <h1>Admin Panle - 100% secure</h1>
+
+        <h2>Messages received by users:</h2>
+        {% for message in messageRead %}
+            <article class="media content-section">
+
+                <div  class="media-body">
+                    
+                    <div class="media-body">
+                        <a class="mr-2" href="#message_by_user">{{ message.user.username }}</a>
+                        <small class="text-muted">{{ message.date_posted }}</small>
+                    </div>
+
+                    <h2>
+                        <a class="article-title" href="#">{{ message.title }}</a>
+                    </h2>
+                        <p class="article-content">{{ message.message }}</p>
+                    </div>
+                </div>
+
+            </article>
+        {% endfor %}
+
+{% endblock content %}

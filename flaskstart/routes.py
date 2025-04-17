@@ -1,7 +1,7 @@
 
-from flaskstart.models import User, Post #IMPORTANT TO PUT THIS IMPORT AFTER DEFINING db variable
+from flaskstart.models import User, Post, Support #IMPORTANT TO PUT THIS IMPORT AFTER DEFINING db variable
 from flask import Flask, render_template, request, url_for, flash, redirect
-from flaskstart.forms import RegitrationForm, LoginForm
+from flaskstart.forms import RegitrationForm, LoginForm, SupportFrom
 from flaskstart import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -79,3 +79,32 @@ def account():
     # else:
     #     return redirect(url_for('login'))
     
+@app.route("/support", methods=['GET', 'POST'])
+@login_required
+def support():
+    form = SupportFrom()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            message = Support(title=form.title.data,
+                              message=form.message.data,
+                              user_id = current_user.id
+                            )
+            db.session.add(message)
+            db.session.commit()
+            flash(f'Your message has been successfully sent to the administrator!', 'success')
+            return redirect(url_for('home'))
+        else:
+            print("*********** \n Form errors:", form.errors, "\n **********")
+            flash(f'Fail to send your message! *_* ', 'danger')
+
+    return render_template('support.html', title='Support', form=form)
+    
+
+@app.route("/admin_panel", methods=['GET', 'POST'])
+@login_required
+def admin_panel():
+    messages = Support.query.all()
+    return render_template('admin_panel.html', messageRead=messages, title="Admin Panel")
+    
+
+        
