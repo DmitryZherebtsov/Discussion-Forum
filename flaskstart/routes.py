@@ -1,7 +1,10 @@
 
+import os # to grab file extention
+import secrets # to randomly name uploaded pic
+from PIL import Image # Pillow library
 from flaskstart.models import User, Post, Support #IMPORTANT TO PUT THIS IMPORT AFTER DEFINING db variable
 from flask import Flask, render_template, request, url_for, flash, redirect
-from flaskstart.forms import RegitrationForm, LoginForm, SupportFrom
+from flaskstart.forms import RegitrationForm, LoginForm, SupportFrom, UpdateAccountForm
 from flaskstart import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -20,11 +23,31 @@ postsByUsers = [
     }
 ]
 
+def save_picture_text(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
+                #path to the package directory / pics static folder / name of pic
+    
+    output_size = (125, 125)
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    
+    i.save(picture_path)
+    
+    return picture_fn
 
 @app.route("/") # декоратор, в цьому випадку реєструє маршрут на головну сторінку, після чого виконує клас/ф-цію знизу
 @app.route("/home") # ще один декоратор, з іншим шляхом але веде на цю ж саму сторінку
 def home():
-    return render_template("home.html", postsRead=postsByUsers)
+    picturesRead = Support.query.all()
+    form = UpdateAccountForm()
+    if form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_picture_text(form.picture.data)
+            current_user.image_file = picture_file
+    return render_template("home.html", postsRead=postsByUsers, picturesRead=picturesRead)
 
 
 @app.route("/about") # ще один декоратор але з іншим шляхом, до сторінки про нас
@@ -32,7 +55,7 @@ def about():
     return render_template("about.html", title="Про Нас")
 
 
-@app.route("/register", methods=['GET', 'POST'])
+@app.route("/register", methods=['GET', 'POST']) # REGISTER ##########
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
@@ -46,7 +69,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
-@app.route("/login", methods=['GET', 'POST'])
+@app.route("/login", methods=['GET', 'POST']) # LOGIN ##########
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
@@ -70,14 +93,47 @@ def logout():
     return redirect(url_for('home'))
 
 
-@app.route("/account")
+
+
+
+def save_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
+                #path to the package directory / pics static folder / name of pic
+    
+    output_size = (125, 125)
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    
+    i.save(picture_path)
+    
+    return picture_fn #pic file name
+
+@app.route("/account", methods=['GET', 'POST']) # UPDATE USER INFO ##########
 @login_required
 def account():
-    return render_template('account.html', title='Account')
-    # if current_user.is_authenticated:
-    #     return render_template('account.html', title='Account')
-    # else:
-    #     return redirect(url_for('login'))
+    form = UpdateAccountForm()
+    if form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_picture(form.picture.data)
+            current_user.image_file = picture_file
+        current_user.username = form.username.data
+        current_user.email = form.email.data 
+        db.session.commit()
+        flash(f'Your super cool account has been updated!', 'success')
+        return redirect(url_for('account'))
+    elif request.method == 'GET': # заповнити поля поточними даними
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+        
+    image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+    return render_template('account.html', 
+                           title='Account', 
+                           image_file=image_file, 
+                           form=form )
+
     
 @app.route("/support", methods=['GET', 'POST'])
 @login_required

@@ -6,23 +6,25 @@
 
         <h2>Messages received by users:</h2>
         {% for message in messageRead %}
-            <article class="media content-section">
+        <article class="media content-section d-flex">
+            <img class="rounded-circle account-img"
+                 src="{{ url_for('static', filename='profile_pics/' + message.user.image_file) }}">
 
-                <div  class="media-body">
-                    
-                    <div class="media-body">
-                        <a class="mr-2" href="#message_by_user">{{ message.user.username }}</a>
-                        <small class="text-muted">{{ message.date_posted }}</small>
-                    </div>
-
-                    <h2>
-                        <a class="article-title" href="#">{{ message.title }}</a>
-                    </h2>
-                        <p class="article-content">{{ message.message }}</p>
-                    </div>
+            <div class="media-body">
+                <div class="mb-2">
+                    <a class="mr-2 fw-bold" href="#message_by_user">{{ message.user.username }}</a>
+                    <small class="text-muted">{{ message.date_posted }}</small>
                 </div>
 
-            </article>
+                <h2 class="h5">
+                    <a class="article-title" href="#">{{ message.title }}</a>
+                </h2>
+                <p class="article-content text_wrap">{{ message.message }}</p>
+            </div>
+        </article>
         {% endfor %}
 
+
+
 {% endblock content %}
+

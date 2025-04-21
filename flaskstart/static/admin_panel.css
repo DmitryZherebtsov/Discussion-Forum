@@ -1,0 +1,7 @@
+/* .text_wrap {
+    word-wrap: break-word;  NOT THIS
+} */
+
+.text_wrap {
+    word-break: break-word; /* THIS ! */
+}
