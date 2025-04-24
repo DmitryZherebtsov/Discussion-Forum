@@ -22,7 +22,7 @@ class RegitrationForm(FlaskForm):
     password = PasswordField('Password', validators=[
         DataRequired()
     ])
-    confirm_password = PasswordField('Password', validators=[
+    confirm_password = PasswordField('Confirm password', validators=[
         DataRequired(),
         EqualTo('password')
     ])
@@ -91,4 +91,9 @@ class UpdateAccountForm(FlaskForm):
             if user:
                 raise ValidationError('That email is already in use. Please choose a different one.')
         
+    
+class PostForm(FlaskForm):
+    title =   StringField   ('Title',        validators=[ DataRequired() ] )
+    content = TextAreaField ('Content',  validators=[ DataRequired() ] )
+    submit =  SubmitField   ('Publish')
     

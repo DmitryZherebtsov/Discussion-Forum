@@ -2,26 +2,26 @@
 import os # to grab file extention
 import secrets # to randomly name uploaded pic
 from PIL import Image # Pillow library
-from flaskstart.models import User, Post, Support #IMPORTANT TO PUT THIS IMPORT AFTER DEFINING db variable
+from flaskstart.models import User, Post, Support # IMPORTANT TO PUT THIS IMPORT AFTER DEFINING db variable
 from flask import Flask, render_template, request, url_for, flash, redirect
-from flaskstart.forms import RegitrationForm, LoginForm, SupportFrom, UpdateAccountForm
+from flaskstart.forms import RegitrationForm, LoginForm, SupportFrom, UpdateAccountForm, PostForm
 from flaskstart import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 
-postsByUsers = [
-    {
-        'author': 'Homer',
-        'title': 'Strange Philosophy of Human Being',
-        'content': "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-        'date': 'June, 8th century BCE'
-    },
-    {
-        'author': 'Aristotle',
-        'title': 'Strange Philosophy of Homer Being',
-        'content': "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-        'date': 'February, 	322 BC'
-    }
-]
+# postsByUsers = [ # test posts as Dummy data
+#     {
+#         'author': 'Homer',
+#         'title': 'Strange Philosophy of Human Being',
+#         'content': "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
+#         'date': 'June, 8th century BCE'
+#     },
+#     {
+#         'author': 'Aristotle',
+#         'title': 'Strange Philosophy of Homer Being',
+#         'content': "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
+#         'date': 'February, 	322 BC'
+#     }
+# ]
 
 def save_picture_text(form_picture):
     random_hex = secrets.token_hex(8)
@@ -42,12 +42,13 @@ def save_picture_text(form_picture):
 @app.route("/home") # ще один декоратор, з іншим шляхом але веде на цю ж саму сторінку
 def home():
     picturesRead = Support.query.all()
+    posts = Post.query.order_by(Post.date_posted.desc()).all()
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
             picture_file = save_picture_text(form.picture.data)
             current_user.image_file = picture_file
-    return render_template("home.html", postsRead=postsByUsers, picturesRead=picturesRead)
+    return render_template("home.html", postsRead=posts, picturesRead=picturesRead)
 
 
 @app.route("/about") # ще один декоратор але з іншим шляхом, до сторінки про нас
@@ -163,4 +164,34 @@ def admin_panel():
     return render_template('admin_panel.html', messageRead=messages, title="Admin Panel")
     
 
+# route to delete
+@app.route("/user_profile")
+@login_required
+def user_profile():
+    return render_template('user_profile.html', user=current_user)
+
+
+
+
+@app.route("/post/new", methods=['GET', 'POST'])
+@login_required
+def new_post():
+    form = PostForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            new_post = Post(
+                title   = form.title.data,
+                content = form.content.data,
+                author  = current_user,
+            )
+            db.session.add(new_post)
+            db.session.commit()
+            flash('Your post has been created!', category='success')
+            return redirect(url_for('home'))
+        else:
+            flash('Some errors appeared, try again!', category='danger')
         
+    return render_template('create_post.html',
+                           title='New Post', 
+                           form=form)
+
