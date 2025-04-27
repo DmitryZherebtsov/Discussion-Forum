@@ -3,7 +3,7 @@ import os # to grab file extention
 import secrets # to randomly name uploaded pic
 from PIL import Image # Pillow library
 from flaskstart.models import User, Post, Support # IMPORTANT TO PUT THIS IMPORT AFTER DEFINING db variable
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, abort
 from flaskstart.forms import RegitrationForm, LoginForm, SupportFrom, UpdateAccountForm, PostForm
 from flaskstart import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
@@ -37,7 +37,7 @@ def save_picture_text(form_picture):
     i.save(picture_path)
     
     return picture_fn
-
+########## MAIN PAGE ##########
 @app.route("/") # декоратор, в цьому випадку реєструє маршрут на головну сторінку, після чого виконує клас/ф-цію знизу
 @app.route("/home") # ще один декоратор, з іншим шляхом але веде на цю ж саму сторінку
 def home():
@@ -193,5 +193,35 @@ def new_post():
         
     return render_template('create_post.html',
                            title='New Post', 
-                           form=form)
+                           form=form,
+                           legend='New Post')
 
+
+@app.route("/post/<int:post_id>") # id конкретного поста
+def post(post_id): # id конкретного поста
+    post = Post.query.get_or_404(post_id) # формує дані конкретного поста по його id і передає в темплейт post.html
+                                          # Якщо пост по id не буде знайдено виведе помилку 404
+    return render_template('post.html', title=post.title, post=post)
+
+
+
+@app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
+@login_required
+def update_post(post_id): 
+    post = Post.query.get_or_404(post_id)
+    if post.author != current_user:
+        abort(403)
+    form = PostForm()
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.content = form.content.data
+        db.session.commit() # just updating existing data, so no db.add here 
+        flash('Your post has been updated', 'success')
+        return redirect(url_for('post', post_id=post_id))
+    elif request.method == 'GET':
+        form.title.data = post.title
+        form.content.data = post.content
+    return render_template('create_post.html',
+                           title='Update Post', 
+                           form=form,
+                           legend='Update Post')
