@@ -1,15 +1,21 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    {% for post in postsRead %}
+    {% for post in postsRead.items %}
         <article class="media content-section">
             <div class="media-body">
                 <div class="article-metadata">
+
                     <img class="rounded-circle account-img " 
                     src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}"
                     style="width: 50px; height: 50px;"
                     alt="">
-                    <a class="mr-2" href="#">{{ post.author.username }}</a>
+
+                    <a class="mr-2" 
+                        href="{{ url_for('user', username=post.author.username) }}">
+                        {{ post.author.username }}
+                    </a>
+
                     <small class="text-muted"><b>{{ post.date_posted.strftime('Published on %d/%m/%Y at %H:%M') }}</b></small>
                 </div>
                 <h2> <!-- !!!!!! -->
@@ -21,5 +27,45 @@
             </div>
         </article>
     {% endfor %}
+
+
+    <!-- first example of Pagination -->
+    {% for page_num in postsRead.iter_pages(left_edge=1,
+                                            right_edge=1,
+                                            left_current=1,
+                                            right_current=2) %}
+        {% if page_num %}
+            {% if postsRead.page == page_num %}
+                <a  class="btn btn-outline-info mb-4 " 
+                    href="{{ url_for('home', page=page_num) }}">
+                    {{ page_num }}
+                </a>
+            {% else %}
+                <a  class="btn btn-info mb-4 " 
+                    href="{{ url_for('home', page=page_num) }}">
+                    {{ page_num }}
+                </a>
+            {% endif %}
+        {% else %}
+            ...
+        {% endif %}
+    {% endfor %}
+
+    <br>
+
+    <!-- second example of Pagination -->
+    <div class="pagination">
+        {% if postsRead.has_prev %}
+          <a href="{{ url_for('home', page=postsRead.prev_num) }}">« Prev </a>
+        {% endif %}
+        
+        <span> Page {{ postsRead.page }} of {{ postsRead.pages }} </span>
+        
+        {% if postsRead.has_next %}
+          <a href="{{ url_for('home', page=postsRead.next_num) }}">Next » </a>
+        {% endif %}
+    </div>
+
+    <br>
 
 {% endblock content %}

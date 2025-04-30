@@ -37,13 +37,18 @@ def save_picture_text(form_picture):
     i.save(picture_path)
     
     return picture_fn
+
+
 ########## MAIN PAGE ##########
 @app.route("/") # декоратор, в цьому випадку реєструє маршрут на головну сторінку, після чого виконує клас/ф-цію знизу
 @app.route("/home") # ще один декоратор, з іншим шляхом але веде на цю ж саму сторінку
 def home():
+    page = request.args.get('page', 1, type=int)
+    posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+    
     picturesRead = Support.query.all()
-    posts = Post.query.order_by(Post.date_posted.desc()).all()
     form = UpdateAccountForm()
+    
     if form.validate_on_submit():
         if form.picture.data:
             picture_file = save_picture_text(form.picture.data)
@@ -239,4 +244,16 @@ def delete_post(post_id):
     return redirect(url_for('home'))
     
     
+
+@app.route("/user/<string:username>") 
+def user(username):
+    page = request.args.get('page', 1, type=int)
     
+    user = User.query.filter_by(username=username).first_or_404()
+    
+    posts = Post.query.filter_by(user_id=user.id).\
+        order_by(Post.date_posted.desc())\
+        .paginate(page=page, per_page=2)
+    
+    return render_template("user.html", user=user, posts=posts)
+
