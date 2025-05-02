@@ -60,7 +60,3 @@ class Support(db.Model):
 
     def __repr__(self):
         return f"Support('{self.title}', '{self.date_posted}')"
-
-
-
-
