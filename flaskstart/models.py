@@ -1,4 +1,5 @@
-from flaskstart import db, login_manager
+from itsdangerous import URLSafeTimedSerializer as Seria
+from flaskstart import db, login_manager, app
 from datetime import datetime
 from flask_login import UserMixin
 
@@ -14,8 +15,22 @@ class User(db.Model, UserMixin):
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     password = db.Column(db.String(60), nullable=False)
     
+    def get_reset_token(self):
+        s = Seria(app.config['SECRET_KEY']) # серіалізатор щоб кодувати і розшифровувати токени  з цим ключем
+        return s.dumps({'user_id': self.id}) # згенерований токен створюється тут
+    
+    @staticmethod
+    def verify_reset_token(token, max_age=1800):
+        s = Seria(app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token, max_age=max_age) # тут розшифрується і перевіриться токен
+        except Exception:
+            return None
+        return User.query.get(data.get('user_id'))
+
+    
     posts = db.relationship('Post', backref='author', lazy=True) 
-                                                        # True = все вантажиться при запиті
+                                                      # True = все вантажиться при запиті
     # posts_message = db.relationship('Post', backref='author_message', lazy=True)
 
     def __repr__(self):
