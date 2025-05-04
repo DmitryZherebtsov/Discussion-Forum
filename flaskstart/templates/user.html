@@ -15,7 +15,7 @@
                          style="width: 50px; height: 50px;"
                          alt="">
 
-                    <a class="mr-2" href="{{ url_for('user', username=post.author.username) }}">
+                    <a class="mr-2" href="{{ url_for('users.user', username=post.author.username) }}">
                         {{ post.author.username }}
                     </a>
 
@@ -24,7 +24,7 @@
                     </small>
                 </div>
                 <h2>
-                    <a class="article-title" href="{{ url_for('post', post_id=post.id) }}">
+                    <a class="article-title" href="{{ url_for('posts.post', post_id=post.id) }}">
                         {{ post.title }}
                     </a>
                 </h2>
@@ -41,12 +41,12 @@
         {% if page_num %}
             {% if posts.page == page_num %}
                 <a  class="btn btn-outline-info mb-4 " 
-                href="{{ url_for('user', username=user.username, page=page_num) }}">
+                href="{{ url_for('users.user', username=user.username, page=page_num) }}">
                 {{ page_num }}
                 </a>
             {% else %}
                 <a  class="btn btn-info mb-4 " 
-                href="{{ url_for('user', username=user.username, page=page_num) }}">
+                href="{{ url_for('users.user', username=user.username, page=page_num) }}">
                 {{ page_num }}
                 </a>
             {% endif %}
@@ -54,16 +54,5 @@
             ...
         {% endif %}
     {% endfor %}
-    <!-- <div class="pagination">
-        {% if posts.has_prev %}
-            <a href="{{ url_for('user', username=user.username, page=posts.prev_num) }}">« Prev</a>
-        {% endif %}
-
-        <span>Page {{ posts.page }} of {{ posts.pages }}</span>
-
-        {% if posts.has_next %}
-            <a href="{{ url_for('user', username=user.username, page=posts.next_num) }}">Next »</a>
-        {% endif %}
-    </div> -->
 
 {% endblock content %}

@@ -1,8 +1,7 @@
-# Форми
+
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed # для картинки + обмеження по конкретним розширенням фото
 from flask_login import current_user
-from wtforms import TextAreaField
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, ValidationError
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 from flaskstart.models import User
@@ -53,16 +52,6 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
     
     
-class SupportFrom(FlaskForm):
-    title = StringField('Title', validators=[
-        DataRequired(),
-        Length(min=5, max=100)
-    ])
-    message = TextAreaField('Message', validators=[
-        DataRequired()
-    ])
-    submit = SubmitField('Send')
-    
 
 class UpdateAccountForm(FlaskForm): 
     username = StringField('Username', validators=[
@@ -91,13 +80,8 @@ class UpdateAccountForm(FlaskForm):
             if user:
                 raise ValidationError('That email is already in use. Please choose a different one.')
         
-    
-class PostForm(FlaskForm):
-    title =   StringField   ('Title',        validators=[ DataRequired() ] )
-    content = TextAreaField ('Content',  validators=[ DataRequired() ] )
-    submit =  SubmitField   ('Publish')
-    
-    
+        
+
 class RequestResetForm(FlaskForm):
     email = StringField('Email',  
                          validators=[ DataRequired(), Email() ])

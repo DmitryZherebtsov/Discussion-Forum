@@ -9,12 +9,12 @@
                 src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}"
                 style="width: 50px; height: 50px;"
                 alt="">
-                <a class="mr-2" href="{{ url_for('user', username=post.author.username) }}">{{ post.author.username }}</a>
+                <a class="mr-2" href="{{ url_for('users.user', username=post.author.username) }}">{{ post.author.username }}</a>
                 <small class="text-muted"><b>{{ post.date_posted.strftime('Published on %d/%m/%Y at %H:%M') }}</b></small>
                 {% if post.author == current_user %}
                     <div>
                         <a  class="btn btn-secondary btn-sm mt-1 mb-1" 
-                            href="{{ url_for('update_post', post_id=post.id)}}">
+                            href="{{ url_for('posts.update_post', post_id=post.id)}}">
                             Update
                         </a>
 
@@ -46,7 +46,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">
+                    <form action="{{ url_for('posts.delete_post', post_id=post.id) }}" method="POST">
                         <input class="btn btn-danger" type="submit" value="Delete">
                     </form>
                 </div>
