@@ -1,5 +1,4 @@
 .env
 __init__.py
 config.py
-flaskstart/errors/handlers.py
-flaskstart/errors/routes.py
+__pycache__/

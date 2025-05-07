@@ -1,0 +1,10 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+        <div class="content-section">
+            <h1 class="display-4">Ooops. Page Not Found 404</h1>
+            <img src="{{ url_for('static', filename='cat_error.png') }}" alt="Error Cat" class="img-fluid rounded my-4" style="max-width: 400px;">
+            <p>That page does not exist</p>
+        </div>
+{% endblock content %}

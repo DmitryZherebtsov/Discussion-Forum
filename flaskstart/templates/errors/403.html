@@ -1,0 +1,10 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+        <div class="content-section">
+            <h1 class="display-4">This action is forbidden 403</h1>
+            <img src="{{ url_for('static', filename='cat_error.png') }}" alt="Error Cat" class="img-fluid rounded my-4" style="max-width: 400px;">
+            <p>You do not have a permission!</p>
+        </div>
+{% endblock content %}

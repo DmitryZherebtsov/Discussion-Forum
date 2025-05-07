@@ -1,0 +1,11 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="content-section text-center">
+        <h1 class="display-4">Something went wrong 500</h1>
+        <img src="{{ url_for('static', filename='cat_error.png') }}" alt="Error Cat" class="img-fluid rounded my-4" style="max-width: 400px;">
+        <p class="lead">It's a trouble on our side. Sorry for the inconvenience.</p>
+        <p>We are already working on a solution.</p>
+    </div>
+{% endblock content %}
