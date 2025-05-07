@@ -40,7 +40,7 @@
                       <a class="nav-item nav-link" href="{{ url_for('users.logout') }}">Log Out </a>
                       <a class="nav-item nav-link" href="{{ url_for('support_page.support') }}">Support</a>
                       <a class="nav-item nav-link" href="{{ url_for('posts.new_post') }}">New Post</a>
-                      {% if current_user.is_authenticated and  current_user.email == "admin@gmail.com"%}
+                      {% if current_user.is_authenticated and  current_user.email == "admin@gmail.com" %}
                         <a class="nav-item nav-link" href="{{ url_for('adminpanel.admin_panel') }}">Admin Panel</a>
                       {% endif %}
                     {% else %}
