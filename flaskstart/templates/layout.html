@@ -43,7 +43,7 @@
                       <a class="nav-item nav-link" href="{{ url_for('users.logout') }}">Log Out </a>
                       <a class="nav-item nav-link" href="{{ url_for('support_page.support') }}">Support</a>
                       <a class="nav-item nav-link" href="{{ url_for('posts.new_post') }}">New Post</a>
-                      {% if current_user.is_authenticated and  current_user.email == "admin@gmail.com" %}
+                      {% if current_user.is_authenticated and current_user.is_admin %}
                         <a class="nav-item nav-link" href="{{ url_for('adminpanel.admin_panel') }}">Admin Panel</a>
                       {% endif %}
                     {% else %}
@@ -73,15 +73,30 @@
               </div>
               <div class="col-md-4">
                 <div class="content-section">
-                  <h3>Our Sidebar</h3>
-                  <p class='text-muted'>Additional information you may find interesting
-                    <ul class="list-group">
-                      <li class="list-group-item list-group-item-light">5 Latest Posts</li>
-                      <li class="list-group-item list-group-item-light">Announcements</li>
-                      <li class="list-group-item list-group-item-light">Calendars</li>
-                      <li class="list-group-item list-group-item-light">etc</li>
-                    </ul>
-                  </p>
+                  <h3>Search & Filters</h3>
+                  <form method="GET" action="{{ url_for('main.home') }}">
+                    <input type="text" class="form-control mb-2" name="q" placeholder="Search posts..." value="{{ search if search is defined else '' }}">
+                    <button class="btn btn-outline-info btn-sm w-100" type="submit">Search</button>
+                  </form>
+
+                  {% if categories is defined and categories %}
+                    <h5 class="mt-4">Categories</h5>
+                    <div class="list-group">
+                      <a class="list-group-item list-group-item-action" href="{{ url_for('main.home') }}">All categories</a>
+                      {% for category in categories %}
+                        <a class="list-group-item list-group-item-action" href="{{ url_for('main.home', category=category.id) }}">{{ category.name }}</a>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+
+                  {% if tags is defined and tags %}
+                    <h5 class="mt-4">Tags</h5>
+                    <div>
+                      {% for tag in tags %}
+                        <a class="badge bg-secondary text-decoration-none me-1 mb-1" href="{{ url_for('main.home', tag=tag.name) }}">{{ tag.name }}</a>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
                 </div>
               </div>
             </div>

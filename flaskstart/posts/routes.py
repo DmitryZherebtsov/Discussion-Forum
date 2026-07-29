@@ -1,77 +1,122 @@
-from flask import (render_template, request,
-                   url_for, flash, redirect, abort, Blueprint)
-from flaskstart import db
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from flaskstart.models import Post
-from flaskstart.posts.forms import PostForm
 
-posts = Blueprint('posts', __name__) # instance of Blueprint
+from flaskstart import db
+from flaskstart.models import Comment, Like, Post
+from flaskstart.posts.forms import CommentForm, PostForm
+from flaskstart.posts.utils import assign_tags
+from flaskstart.utils.permissions import can_manage_comment, can_manage_post
+
+posts = Blueprint('posts', __name__)
 
 
 @posts.route("/post/new", methods=['GET', 'POST'])
 @login_required
 def new_post():
     form = PostForm()
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            new_post = Post(
-                title   = form.title.data,
-                content = form.content.data,
-                author  = current_user,
-            )
-            db.session.add(new_post)
-            db.session.commit()
-            flash('Your post has been created!', category='success')
-            return redirect(url_for('main.home'))
-        else:
-            flash('Some errors appeared, try again!', category='danger')
-        
-    return render_template('create_post.html',
-                           title='New Post', 
-                           form=form,
-                           legend='New Post')
+    if form.validate_on_submit():
+        post = Post(
+            title=form.title.data,
+            content=form.content.data,
+            author=current_user,
+            category_id=None if form.category.data == 0 else form.category.data,
+        )
+        db.session.add(post)
+        db.session.flush()
+        assign_tags(post, form.tags.data)
+        db.session.commit()
+        flash('Your post has been created!', category='success')
+        return redirect(url_for('main.home'))
+    return render_template('create_post.html', title='New Post', form=form, legend='New Post')
 
 
-@posts.route("/post/<int:post_id>") # id конкретного поста
-def post(post_id): # id конкретного поста
-    post = Post.query.get_or_404(post_id) # формує дані конкретного поста по його id і передає в темплейт post.html
-                                          # Якщо пост по id не буде знайдено виведе помилку 404
-    return render_template('post.html', title=post.title, post=post)
-
+@posts.route("/post/<int:post_id>")
+def post(post_id):
+    post = Post.query.get_or_404(post_id)
+    comment_form = CommentForm()
+    comments = Comment.query.filter_by(post_id=post.id).order_by(Comment.date_posted.asc()).all()
+    return render_template(
+        'post.html',
+        title=post.title,
+        post=post,
+        comments=comments,
+        comment_form=comment_form,
+    )
 
 
 @posts.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
 @login_required
-def update_post(post_id): 
-    post = Post.query.get_or_404(post_id)# Шукає пост за id або викидає 404 
-    if post.author != current_user:
+def update_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if not can_manage_post(post):
         abort(403)
     form = PostForm()
     if form.validate_on_submit():
         post.title = form.title.data
         post.content = form.content.data
-        db.session.commit() # just updating existing data, so no db.add here 
+        post.category_id = None if form.category.data == 0 else form.category.data
+        assign_tags(post, form.tags.data)
+        db.session.commit()
         flash('Your post has been updated', 'success')
         return redirect(url_for('posts.post', post_id=post_id))
-    elif request.method == 'GET':
+    if request.method == 'GET':
         form.title.data = post.title
         form.content.data = post.content
-    return render_template('create_post.html',
-                           title='Update Post', 
-                           form=form,
-                           legend='Update Post')
-    
-    
+        form.category.data = post.category_id or 0
+        form.tags.data = ', '.join(tag.name for tag in post.tags)
+    return render_template('create_post.html', title='Update Post', form=form, legend='Update Post')
+
+
 @posts.route("/post/<int:post_id>/delete", methods=['POST'])
 @login_required
-def delete_post(post_id): 
+def delete_post(post_id):
     post = Post.query.get_or_404(post_id)
-    if post.author != current_user:
+    if not can_manage_post(post):
         abort(403)
     db.session.delete(post)
     db.session.commit()
-    flash('Your post has been deleted!', 'danger')
+    flash('Post has been deleted!', 'danger')
     return redirect(url_for('main.home'))
-    
 
 
+@posts.route("/post/<int:post_id>/comment", methods=['POST'])
+@login_required
+def add_comment(post_id):
+    post = Post.query.get_or_404(post_id)
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment(content=form.content.data, author=current_user, post=post)
+        db.session.add(comment)
+        db.session.commit()
+        flash('Comment added.', 'success')
+    else:
+        flash('Could not add comment.', 'danger')
+    return redirect(url_for('posts.post', post_id=post_id))
+
+
+@posts.route("/comment/<int:comment_id>/delete", methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if not can_manage_comment(comment):
+        abort(403)
+    post_id = comment.post_id
+    db.session.delete(comment)
+    db.session.commit()
+    flash('Comment deleted.', 'info')
+    return redirect(url_for('posts.post', post_id=post_id))
+
+
+@posts.route("/post/<int:post_id>/like", methods=['POST'])
+@login_required
+def toggle_like(post_id):
+    post = Post.query.get_or_404(post_id)
+    existing = Like.query.filter_by(user_id=current_user.id, post_id=post.id).first()
+    if existing:
+        db.session.delete(existing)
+        flash('Like removed.', 'info')
+    else:
+        db.session.add(Like(user_id=current_user.id, post_id=post.id))
+        flash('Post liked!', 'success')
+    db.session.commit()
+    return redirect(request.referrer or url_for('posts.post', post_id=post_id))

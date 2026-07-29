@@ -1,113 +1,56 @@
 # DiscussionForum
 
-Flask-based discussion forum with user accounts, posts, support messages, and an admin panel.
+Flask discussion forum — portfolio project with auth, posts, comments, likes, tags, categories, search, and admin moderation.
 
 ## Features
 
-- User registration, login, and profile pictures
-- Create, read, update, and delete posts
-- Password reset via email
-- Support messages to admin
-- Admin panel (`admin@gmail.com` only)
+- User registration, login, profile pictures, password reset
+- Posts with categories and tags
+- Comments and likes
+- Search and filter by tag/category
+- Role-based admin panel
+- Flask-Migrate database migrations
+- pytest test suite
 
-## Setup
-
-### 1. Clone the repository
-
-Use `git clone` instead of downloading a ZIP so you keep Git history:
-
-```powershell
-git clone https://github.com/YOUR_USERNAME/DiscussionForum.git
-cd DiscussionForum
-```
-
-If you already have the files locally without Git:
-
-```powershell
-git init
-git remote add origin https://github.com/YOUR_USERNAME/DiscussionForum.git
-git fetch origin
-git checkout -b main origin/main
-```
-
-### 2. Create a virtual environment
+## Quick start
 
 ```powershell
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-### 3. Configure secrets
-
-Copy the example config and edit it with your values:
-
-```powershell
 copy config.example.py config.py
-```
-
-Edit `config.py`:
-
-- Set a strong `SECRET_KEY` (random string)
-- For password reset emails, set `MAIL_USERNAME` and `MAIL_PASSWORD`, or use environment variables:
-
-```powershell
-$env:EMAIL_USER = "your@gmail.com"
-$env:EMAIL_PASS = "your-app-password"
-```
-
-`config.py` is gitignored and should never be committed.
-
-### 4. Add static assets (if missing)
-
-Place these files in `flaskstart/static/`:
-
-- `profile_pics/default.jpg` — default avatar for new users
-- `cat_error.png` — used on error pages (403, 404, 500)
-
-### 5. Run the app
-
-```powershell
+flask --app run:app db upgrade
 python run.py
 ```
 
-Open http://127.0.0.1:5000 in your browser.
+Open http://127.0.0.1:5000
 
-The SQLite database (`site.db`) is created automatically on first run.
+## Database migrations
+
+```powershell
+flask --app run:app db init          # first time only
+flask --app run:app db migrate -m "message"
+flask --app run:app db upgrade
+```
+
+After upgrading an existing database, promote legacy admin accounts once from the admin panel or run:
+
+```python
+from flaskstart.utils.db_seed import seed_categories, promote_admin_accounts
+seed_categories()
+promote_admin_accounts()
+```
 
 ## Admin access
 
-Register a user with email `admin@gmail.com` to access the admin panel at `/admin_panel`.
+Users with `role = admin` can access `/admin_panel`. The legacy `Admin` user or `admin@gmail.com` account can be promoted via the seed helper above.
 
-## Project structure
+## Tests
 
+```powershell
+pytest
 ```
-DiscussionForum/
-├── config.example.py      # Config template (committed)
-├── config.py              # Your secrets (gitignored)
-├── run.py                 # Entry point
-├── requirements.txt
-└── flaskstart/
-    ├── __init__.py        # App setup and blueprint registration
-    ├── models.py          # User, Post, Support models
-    ├── main/              # Home page
-    ├── users/             # Auth and account
-    ├── posts/             # Post CRUD
-    ├── support/           # Support messages
-    ├── admin_panel/       # Admin view
-    ├── errors/            # Error handlers
-    ├── static/            # CSS and uploads
-    └── templates/         # HTML templates
-```
-
-## Git workflow
-
-- **`main`** — stable working code
-- **Feature branches** — `feature/my-change` for new work
-- **Never commit** — `config.py`, `.env`, `*.db`, uploaded profile pictures
 
 ## Tech stack
 
-- Flask 3, SQLAlchemy, Flask-Login, Flask-Bcrypt, Flask-Mail
-- WTForms, Pillow
-- Bootstrap 5
+Flask, SQLAlchemy, Flask-Login, Flask-Migrate, WTForms, Bootstrap 5, pytest

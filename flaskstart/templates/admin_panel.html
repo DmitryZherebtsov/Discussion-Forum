@@ -1,29 +1,83 @@
-
 {% extends "layout.html" %}
 
 {% block content %}
-        <h1>Admin panel with users messages </h1>
+    <h1>Admin Panel</h1>
 
-        <h2>Messages received by users:</h2>
-        {% for message in messageRead %}
+    <div class="row mb-4">
+        <div class="col-md-3"><div class="card p-3 text-center"><strong>{{ stats.users }}</strong><br>Users</div></div>
+        <div class="col-md-3"><div class="card p-3 text-center"><strong>{{ stats.posts }}</strong><br>Posts</div></div>
+        <div class="col-md-3"><div class="card p-3 text-center"><strong>{{ stats.comments }}</strong><br>Comments</div></div>
+        <div class="col-md-3"><div class="card p-3 text-center"><strong>{{ stats.support_messages }}</strong><br>Support</div></div>
+    </div>
+
+    <h2>Users</h2>
+    <div class="table-responsive mb-5">
+        <table class="table table-striped">
+            <thead>
+                <tr><th>Username</th><th>Email</th><th>Role</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td><span class="badge {% if user.is_admin %}bg-danger{% else %}bg-secondary{% endif %}">{{ user.role }}</span></td>
+                        <td class="d-flex gap-2">
+                            <form action="{{ url_for('adminpanel.toggle_admin', user_id=user.id) }}" method="POST">
+                                <button class="btn btn-sm btn-outline-primary" type="submit">Toggle admin</button>
+                            </form>
+                            {% if user.id != current_user.id %}
+                                <form action="{{ url_for('adminpanel.delete_user', user_id=user.id) }}" method="POST">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Posts</h2>
+    {% for post in posts %}
+        <article class="media content-section">
+            <div class="media-body">
+                <strong>{{ post.title }}</strong> by {{ post.author.username }}
+                <p class="mb-2">{{ post.content[:120] }}{% if post.content|length > 120 %}...{% endif %}</p>
+                <form action="{{ url_for('adminpanel.admin_delete_post', post_id=post.id) }}" method="POST">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">Delete post</button>
+                </form>
+            </div>
+        </article>
+    {% endfor %}
+
+    <h2 class="mt-4">Comments</h2>
+    {% for comment in comments %}
+        <div class="border rounded p-3 mb-2">
+            <strong>{{ comment.author.username }}</strong> on post #{{ comment.post_id }}
+            <p class="mb-2">{{ comment.content }}</p>
+            <form action="{{ url_for('adminpanel.admin_delete_comment', comment_id=comment.id) }}" method="POST">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete comment</button>
+            </form>
+        </div>
+    {% endfor %}
+
+    <h2 class="mt-4">Support messages</h2>
+    {% for message in messageRead %}
         <article class="media content-section d-flex">
             <img class="rounded-circle account-img"
                  src="{{ url_for('static', filename='profile_pics/' + message.user.image_file) }}">
-
             <div class="media-body">
                 <div class="mb-2">
-                    <a class="mr-2 fw-bold" href="#message_by_user">{{ message.user.username }}</a>
+                    <strong>{{ message.user.username }}</strong>
                     <small class="text-muted">{{ message.date_posted }}</small>
                 </div>
-
-                <h2 class="h5">
-                    <a class="article-title" href="#">{{ message.title }}</a>
-                </h2>
-                <p class="article-content text_wrap">{{ message.message }}</p>
+                <h3 class="h5">{{ message.title }}</h3>
+                <p class="article-content">{{ message.message }}</p>
+                <form action="{{ url_for('adminpanel.admin_delete_support', message_id=message.id) }}" method="POST">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">Delete message</button>
+                </form>
             </div>
         </article>
-        {% endfor %}
-
-
-
+    {% endfor %}
 {% endblock content %}
