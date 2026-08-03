@@ -3,7 +3,7 @@ services:
     name: discussionforum
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt && flask --app run:app db upgrade
+    buildCommand: cp config.example.py config.py && pip install -r requirements.txt && flask --app run:app db upgrade
     startCommand: gunicorn run:app
     envVars:
       - key: PYTHON_VERSION

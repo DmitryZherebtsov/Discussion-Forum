@@ -38,7 +38,7 @@ Open http://127.0.0.1:5000
 1. Push this repo to GitHub
 2. On [render.com](https://render.com): **New → Blueprint** (uses `render.yaml`)  
    Or **New → Web Service** and connect the repo manually:
-   - **Build command:** `pip install -r requirements.txt && flask --app run:app db upgrade`
+   - **Build command:** `cp config.example.py config.py && pip install -r requirements.txt && flask --app run:app db upgrade`
    - **Start command:** `gunicorn run:app`
 3. Set environment variables in Render:
 
