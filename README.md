@@ -10,6 +10,7 @@ Flask discussion forum — portfolio project with auth, posts, comments, likes, 
 - Search and filter by tag/category
 - Role-based admin panel
 - Flask-Migrate database migrations
+- Light/dark theme
 - pytest test suite
 
 ## Quick start (local)
@@ -25,7 +26,17 @@ python run.py
 
 Open http://127.0.0.1:5000
 
+Optional demo data (7 users, 25 posts, comments, likes):
+
+```powershell
+python seed_db.py
+```
+
+Demo admin: `admin@gmail.com` / `123`
+
 ## Deploy to Render + Neon (free portfolio hosting)
+
+**Deploy from the `master` branch.** It has the current app (migrations, admin panel, comments, likes, tags, Render config). The `dev` branch is outdated and should not be used for production.
 
 ### 1. Neon (database)
 
@@ -35,9 +46,9 @@ Open http://127.0.0.1:5000
 
 ### 2. Render (web app)
 
-1. Push this repo to GitHub
-2. On [render.com](https://render.com): **New → Blueprint** (uses `render.yaml`)  
-   Or **New → Web Service** and connect the repo manually:
+1. Push this repo to GitHub (make sure `master` is up to date)
+2. On [render.com](https://render.com): **New → Blueprint** (uses `render.yaml`, branch `master`)  
+   Or **New → Web Service**, connect the repo, and set **Branch** to `master`:
    - **Build command:** `cp config.example.py config.py && pip install -r requirements.txt && flask --app run:app db upgrade`
    - **Start command:** `gunicorn run:app`
 3. Set environment variables in Render:
@@ -47,19 +58,45 @@ Open http://127.0.0.1:5000
 | `DATABASE_URL` | Neon connection string |
 | `SECRET_KEY` | long random string (Render can auto-generate) |
 | `PROFILE_UPLOADS_ENABLED` | `false` |
-| `EMAIL_USER` / `EMAIL_PASS` | optional, for password reset |
+| `EMAIL_USER` / `EMAIL_PASS` | optional, for password reset emails |
 
-4. After first deploy, seed categories and promote admin (Render shell or one-off):
+Migrations run automatically during the build — you do not need to run them manually on Render.
+
+### 3. After first deploy
+
+The database starts empty. Choose one:
+
+**Option A — use your own account**
+
+1. Register on the live site
+2. In Render **Shell**, promote yourself to admin (replace the email):
 
 ```python
-from flaskstart import app
-from flaskstart.utils.db_seed import seed_categories, promote_admin_accounts
+from flaskstart import app, db
+from flaskstart.models import User
+from flaskstart.utils.db_seed import seed_categories
 with app.app_context():
     seed_categories()
-    promote_admin_accounts()
+    user = User.query.filter_by(email="your@email.com").one()
+    user.role = "admin"
+    db.session.commit()
 ```
 
-**Note:** Free Render apps sleep after ~15 min idle (30–60s cold start). Profile picture uploads are disabled in production (`PROFILE_UPLOADS_ENABLED=false`).
+**Option B — load demo content (portfolio showcase)**
+
+In Render **Shell**:
+
+```bash
+python seed_db.py
+```
+
+This creates categories, demo users, posts, comments, and likes. Admin login: `admin@gmail.com` / `123` — change this password if the site is public.
+
+**Notes**
+
+- Free Render apps sleep after ~15 min idle (~30–60s cold start).
+- Profile picture uploads are disabled in production (`PROFILE_UPLOADS_ENABLED=false`); avatars use bundled defaults.
+- Password reset requires `EMAIL_USER` and `EMAIL_PASS` (Gmail SMTP).
 
 ## Database migrations
 

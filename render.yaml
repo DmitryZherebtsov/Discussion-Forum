@@ -3,6 +3,7 @@ services:
     name: discussionforum
     runtime: python
     plan: free
+    branch: master
     buildCommand: cp config.example.py config.py && pip install -r requirements.txt && flask --app run:app db upgrade
     startCommand: gunicorn run:app
     envVars:
