@@ -33,6 +33,6 @@ def ensure_database(app, db):
         from flaskstart.utils.db_seed import seed_categories
         seed_categories()
 
-        if db.session.execute(text('SELECT COUNT(*) FROM user')).scalar() == 0:
+        if db.session.execute(text('SELECT COUNT(*) FROM "user"')).scalar() == 0:
             from flaskstart.utils.db_seed import seed_demo_data
             seed_demo_data(force=True)

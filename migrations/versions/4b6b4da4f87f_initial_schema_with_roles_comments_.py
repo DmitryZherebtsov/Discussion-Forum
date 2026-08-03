@@ -128,8 +128,10 @@ def upgrade():
 
     if inspector.has_table('user'):
         op.execute(
-            "UPDATE user SET role = 'admin' "
-            "WHERE username = 'Admin' OR email = 'admin@gmail.com'"
+            sa.text(
+                'UPDATE "user" SET role = \'admin\' '
+                "WHERE username = 'Admin' OR email = 'admin@gmail.com'"
+            )
         )
 
 
