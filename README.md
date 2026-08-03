@@ -2,6 +2,8 @@
 
 Flask discussion forum — portfolio project with auth, posts, comments, likes, tags, categories, search, and admin moderation.
 
+Live - https://discussion-forum-mmq1.onrender.com/home
+
 ## Features
 
 - User registration, login, profile pictures, password reset
@@ -12,6 +14,11 @@ Flask discussion forum — portfolio project with auth, posts, comments, likes, 
 - Flask-Migrate database migrations
 - Light/dark theme
 - pytest test suite
+
+  <img width="1597" height="731" alt="image" src="https://github.com/user-attachments/assets/02e40c84-0e0e-4143-b989-e56f470ee07d" />
+  <img width="883" height="693" alt="image" src="https://github.com/user-attachments/assets/82b99a2f-dd6c-407e-8948-7af81935ae87" />
+  <img width="1353" height="736" alt="image" src="https://github.com/user-attachments/assets/3a7d6fd1-234a-41e8-87c8-cc5f5b22bac5" />
+
 
 ## Quick start (local)
 
