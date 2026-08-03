@@ -61,7 +61,7 @@ def test_register_and_login(client):
         'email': 'newbie@test.com',
         'password': 'password123',
     }, follow_redirects=True)
-    assert b'Log Out' in response.data
+    assert b'Log out' in response.data
 
 
 def test_create_post_requires_login(client):

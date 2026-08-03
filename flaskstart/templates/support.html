@@ -1,57 +1,27 @@
-{% extends "layout.html" %} 
-<!-- Бо наслідує layout сорінку -->
+{% extends "layout.html" %}
+{% set centered_form = true %}
 
 {% block content %}
-        <h1>Tech Support are Here!</h1>
+    <div class="card">
+        <legend class="form-legend">Contact support</legend>
+        <p class="form-footer" style="border:none;padding:0;margin:0 0 1.25rem">Send a message directly to the admin team.</p>
 
-        <div class="content-section">
+        <form method="POST" action="" novalidate>
+            {{ form.hidden_tag() }}
 
-            <form method="POST" action="" novalidate>
-                {{ form.hidden_tag() }} <!-- !!!!!!!! -->
-                <fieldset class="form-group">
-                <legend class="border-bottom mb-4">
-                    Write and send your message below so the administrator can see it.
-                </legend>
+            <div class="form-group">
+                {{ form.title.label(class="form-label") }}
+                {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                {% for error in form.title.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
 
-                <div class="form-group">
-                    {{ form.title.label(class="form-control-label") }}
+            <div class="form-group">
+                {{ form.message.label(class="form-label") }}
+                {{ form.message(class="form-control", rows=6) }}
+                {% for error in form.message.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            </div>
 
-                        {% if form.title.errors %}
-                            {{ form.title(class="form-control form-control-lg is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in form.title.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            {{ form.title(class="form-control form-control-lg") }}
-                        {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.message.label(class="form-control-label") }}
-
-                        {% if form.message.errors %}
-                            {{ form.message(class="form-control form-control-lg is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in form.message.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            {{ form.message(class="form-control form-control-lg") }}
-                        {% endif %}
-                </div>
-                </fieldset>
-                <br>
-                <div class="form-group">
-                    {{ form.submit(class="btn btn-outline-info", value="Send Message")}}
-                </div>
-            </form>
-
-        </div>
-
-        
-
-
+            <button type="submit" class="btn-primary-custom">Send message</button>
+        </form>
+    </div>
 {% endblock content %}

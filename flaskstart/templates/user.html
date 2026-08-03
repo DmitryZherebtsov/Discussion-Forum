@@ -1,58 +1,45 @@
 {% extends "layout.html" %}
+{% block sidebar %}{% endblock %}
 
 {% block content %}
-    <div>
-        <h2><b>{{ posts.total }}</b> posts by: <i>{{ user.username }}</i></h2>
-        <p><b>Write me on mail:</b> {{ user.email }}</p>
+    <div class="card">
+        <div class="account-header">
+            <img class="avatar avatar-lg"
+                 src="{{ url_for('static', filename='profile_pics/' + user.image_file) }}"
+                 alt="{{ user.username }} avatar">
+            <div>
+                <h1 class="account-name">{{ user.username }}</h1>
+                <p class="account-email">{{ user.email }} · {{ posts.total }} posts</p>
+            </div>
+        </div>
     </div>
 
     {% for post in posts.items %}
-        <article class="media content-section">
-            <div class="media-body">
-                <div class="article-metadata">
-                    <img class="rounded-circle account-img"
-                         src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}"
-                         style="width: 50px; height: 50px;"
-                         alt="">
-
-                    <a class="mr-2" href="{{ url_for('users.user', username=post.author.username) }}">
-                        {{ post.author.username }}
-                    </a>
-
-                    <small class="text-muted">
-                        <b>{{ post.date_posted.strftime('Published on %d/%m/%Y at %H:%M') }}</b>
-                    </small>
+        <article class="post-card">
+            <div class="post-header">
+                <img class="avatar"
+                     src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}"
+                     alt="{{ post.author.username }} avatar">
+                <div class="post-meta">
+                    <span class="post-author">{{ post.author.username }}</span>
+                    <span class="post-date">{{ post.date_posted.strftime('%d %b %Y · %H:%M') }}</span>
                 </div>
-                <h2>
-                    <a class="article-title" href="{{ url_for('posts.post', post_id=post.id) }}">
-                        {{ post.title }}
-                    </a>
-                </h2>
-                <p class="article-content">{{ post.content }}</p>
             </div>
+            <h2 class="post-title">
+                <a href="{{ url_for('posts.post', post_id=post.id) }}">{{ post.title }}</a>
+            </h2>
+            <p class="post-excerpt">{{ post.content[:200] }}{% if post.content|length > 200 %}…{% endif %}</p>
         </article>
     {% endfor %}
 
-    
-    {% for page_num in posts.iter_pages(left_edge=1,
-        right_edge=1,
-        left_current=1,
-        right_current=2) %}
-        {% if page_num %}
-            {% if posts.page == page_num %}
-                <a  class="btn btn-outline-info mb-4 " 
-                href="{{ url_for('users.user', username=user.username, page=page_num) }}">
-                {{ page_num }}
-                </a>
+    <nav class="pagination-bar">
+        {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                <a class="page-btn {% if posts.page == page_num %}page-btn-active{% endif %}"
+                   href="{{ url_for('users.user', username=user.username, page=page_num) }}">{{ page_num }}</a>
             {% else %}
-                <a  class="btn btn-info mb-4 " 
-                href="{{ url_for('users.user', username=user.username, page=page_num) }}">
-                {{ page_num }}
-                </a>
+                <span class="page-info">…</span>
             {% endif %}
-        {% else %}
-            ...
-        {% endif %}
-    {% endfor %}
-
+        {% endfor %}
+    </nav>
 {% endblock content %}

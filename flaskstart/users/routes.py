@@ -1,6 +1,6 @@
 from flask import (render_template, request,
                    url_for, flash, redirect, Blueprint)
-from flaskstart import db, bcrypt
+from flaskstart import app, db, bcrypt
 from flask_login import current_user, login_required, login_user, logout_user
 from flaskstart.users.forms import (RegitrationForm, LoginForm, UpdateAccountForm,
                                     RequestResetForm, ResetPasswordForm)
@@ -54,9 +54,11 @@ def logout():
 def account():
     form = UpdateAccountForm()
     if form.validate_on_submit():
-        if form.picture.data:
+        if form.picture.data and app.config['PROFILE_UPLOADS_ENABLED']:
             picture_file = save_picture(form.picture.data)
             current_user.image_file = picture_file
+        elif form.picture.data:
+            flash('Profile picture uploads are disabled on this server.', 'warning')
         current_user.username = form.username.data
         current_user.email = form.email.data 
         db.session.commit()

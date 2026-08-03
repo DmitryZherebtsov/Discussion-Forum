@@ -1,29 +1,17 @@
 {% extends "layout.html" %}
+{% set centered_form = true %}
 {% block content %}
-    <div class="content-section">
+    <div class="card form-card">
         <form method="POST" action="" novalidate>
             {{ form.hidden_tag() }}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Reset Password</legend>
-                
-                <div class="form-group">
-                    {{ form.email.label(class="form-control-label") }}
-                    {% if form.email.errors %}
-                        {{ form.email(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.email.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.email(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-            </fieldset>
-            <br>
+            <legend class="form-legend">Reset password</legend>
+            <p class="form-footer" style="border:none;padding:0;margin:0 0 1rem">Enter your email and we'll send reset instructions.</p>
             <div class="form-group">
-                {{ form.submit(class="btn btn-outline-info") }}
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                {% for error in form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
             </div>
+            <button type="submit" class="btn-primary-custom w-100">{{ form.submit.label.text }}</button>
         </form>
     </div>
 {% endblock content %}

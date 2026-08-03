@@ -20,7 +20,7 @@ env/
 # User uploads
 flaskstart/static/profile_pics/*
 !flaskstart/static/profile_pics/.gitkeep
-!flaskstart/static/profile_pics/default.jpg
+!flaskstart/static/profile_pics/default.png
 
 # IDE / OS
 .vscode/

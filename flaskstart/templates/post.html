@@ -1,90 +1,97 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <article class="media content-section">
-        <div class="media-body">
-            <div class="article-metadata">
-                <img class="rounded-circle account-img"
-                     src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}"
-                     style="width: 50px; height: 50px;"
-                     alt="">
-                <a class="mr-2" href="{{ url_for('users.user', username=post.author.username) }}">{{ post.author.username }}</a>
-                <small class="text-muted"><b>{{ post.date_posted.strftime('Published on %d/%m/%Y at %H:%M') }}</b></small>
-                {% if current_user.is_authenticated and (post.author == current_user or current_user.is_admin) %}
-                    <div>
-                        <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{{ url_for('posts.update_post', post_id=post.id) }}">Update</a>
-                        <button type="button" class="btn btn-danger btn-sm m-1" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
-                    </div>
-                {% endif %}
+    <article class="post-card">
+        <div class="post-header">
+            <img class="avatar"
+                 src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}"
+                 alt="{{ post.author.username }} avatar">
+            <div class="post-meta">
+                <a class="post-author" href="{{ url_for('users.user', username=post.author.username) }}">{{ post.author.username }}</a>
+                <span class="post-date">{{ post.date_posted.strftime('%d %b %Y · %H:%M') }}</span>
             </div>
+        </div>
 
+        {% if current_user.is_authenticated and (post.author == current_user or current_user.is_admin) %}
+            <div class="btn-row">
+                <a class="btn-ghost" href="{{ url_for('posts.update_post', post_id=post.id) }}">Edit</a>
+                <button type="button" class="btn-danger-custom" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
+            </div>
+        {% endif %}
+
+        <div class="post-tags">
             {% if post.category %}
-                <span class="badge bg-primary">{{ post.category.name }}</span>
+                <span class="chip chip-sm chip-category">{{ post.category.name }}</span>
             {% endif %}
             {% for tag in post.tags %}
-                <a class="badge bg-secondary text-decoration-none" href="{{ url_for('main.home', tag=tag.name) }}">{{ tag.name }}</a>
+                <a class="chip chip-sm" href="{{ url_for('main.home', tag=tag.name) }}">#{{ tag.name }}</a>
             {% endfor %}
+        </div>
 
-            <h2 class="article-title">{{ post.title }}</h2>
-            <p class="article-content">{{ post.content }}</p>
+        <h1 class="post-title">{{ post.title }}</h1>
+        <p class="post-body">{{ post.content }}</p>
 
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-muted">{{ post.like_count }} likes</span>
-                {% if current_user.is_authenticated %}
-                    <form action="{{ url_for('posts.toggle_like', post_id=post.id) }}" method="POST">
-                        <button class="btn btn-sm {% if post.liked_by(current_user) %}btn-danger{% else %}btn-outline-danger{% endif %}" type="submit">
-                            {% if post.liked_by(current_user) %}Unlike{% else %}Like{% endif %}
-                        </button>
-                    </form>
-                {% endif %}
-            </div>
+        <div class="btn-row">
+            <span class="post-stats" style="margin:0">♥ {{ post.like_count }} likes</span>
+            {% if current_user.is_authenticated %}
+                <form action="{{ url_for('posts.toggle_like', post_id=post.id) }}" method="POST">
+                    <button class="btn-like {% if post.liked_by(current_user) %}btn-like-active{% endif %}" type="submit">
+                        {% if post.liked_by(current_user) %}Unlike{% else %}Like{% endif %}
+                    </button>
+                </form>
+            {% endif %}
         </div>
     </article>
 
-    <section class="content-section">
-        <h3>Comments ({{ comments|length }})</h3>
+    <section class="card comments-section">
+        <h2 class="comments-title">Comments · {{ comments|length }}</h2>
+
         {% if current_user.is_authenticated %}
             <form method="POST" action="{{ url_for('posts.add_comment', post_id=post.id) }}">
                 {{ comment_form.hidden_tag() }}
-                <div class="mb-3">
-                    {{ comment_form.content(class="form-control", rows=3, placeholder="Write a comment...") }}
+                <div class="form-group">
+                    {{ comment_form.content(class="form-control", rows=3, placeholder="Share your thoughts…") }}
                 </div>
-                {{ comment_form.submit(class="btn btn-outline-info btn-sm") }}
+                <button type="submit" class="btn-primary-custom">Post comment</button>
             </form>
         {% else %}
-            <p><a href="{{ url_for('users.login') }}">Log in</a> to leave a comment.</p>
+            <p class="form-footer" style="border:none;padding:0;margin:1rem 0 0">
+                <a href="{{ url_for('users.login') }}">Log in</a> to join the discussion.
+            </p>
         {% endif %}
 
+        <div class="comments-list">
         {% for comment in comments %}
-            <div class="border rounded p-3 mt-3">
-                <div class="d-flex justify-content-between">
-                    <strong>{{ comment.author.username }}</strong>
-                    <small class="text-muted">{{ comment.date_posted.strftime('%d/%m/%Y %H:%M') }}</small>
+            <div class="comment-card">
+                <div class="comment-header">
+                    <span class="comment-author">{{ comment.author.username }}</span>
+                    <span class="comment-date">{{ comment.date_posted.strftime('%d %b %Y · %H:%M') }}</span>
                 </div>
-                <p class="mb-2">{{ comment.content }}</p>
+                <p class="comment-body">{{ comment.content }}</p>
                 {% if current_user.is_authenticated and (comment.author == current_user or current_user.is_admin) %}
                     <form action="{{ url_for('posts.delete_comment', comment_id=comment.id) }}" method="POST">
-                        <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                        <button class="btn-ghost" type="submit" style="margin-top:0.5rem;font-size:0.78rem">Delete</button>
                     </form>
                 {% endif %}
             </div>
         {% else %}
-            <p class="text-muted mt-3">No comments yet.</p>
+            <p class="form-footer" style="border:none">No comments yet — be the first.</p>
         {% endfor %}
+        </div>
     </section>
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Delete Post?</h5>
+                    <h5 class="modal-title">Delete this post?</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">Do you want to delete this post?</div>
+                <div class="modal-body">This action cannot be undone.</div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
                     <form action="{{ url_for('posts.delete_post', post_id=post.id) }}" method="POST">
-                        <input class="btn btn-danger" type="submit" value="Delete">
+                        <button class="btn-danger-custom" type="submit">Delete</button>
                     </form>
                 </div>
             </div>

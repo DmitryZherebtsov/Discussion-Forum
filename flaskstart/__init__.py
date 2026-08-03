@@ -31,3 +31,6 @@ app.register_blueprint(main)
 app.register_blueprint(errors)
 app.register_blueprint(support_page)
 app.register_blueprint(adminpanel)
+
+from flaskstart.utils.db_init import ensure_database
+ensure_database(app, db)
