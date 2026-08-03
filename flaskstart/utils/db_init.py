@@ -3,8 +3,21 @@ import os
 from sqlalchemy import inspect, text
 
 
+def _seed_if_empty(db):
+    from flaskstart.utils.db_seed import seed_categories, seed_demo_data
+
+    seed_categories()
+
+    inspector = inspect(db.engine)
+    if not inspector.has_table('user'):
+        return
+
+    if db.session.execute(text('SELECT COUNT(*) FROM "user"')).scalar() == 0:
+        seed_demo_data(force=True)
+
+
 def ensure_database(app, db):
-    """Create missing tables. Repairs broken DBs where alembic_version exists but tables don't."""
+    """Create missing tables and seed demo data on an empty production database."""
     if app.config.get('TESTING'):
         return
 
@@ -17,6 +30,7 @@ def ensure_database(app, db):
 
         inspector = inspect(db.engine)
         if inspector.has_table('post'):
+            _seed_if_empty(db)
             return
 
         if inspector.has_table('alembic_version'):
@@ -30,9 +44,4 @@ def ensure_database(app, db):
         if not inspector.has_table('post'):
             db.create_all()
 
-        from flaskstart.utils.db_seed import seed_categories
-        seed_categories()
-
-        if db.session.execute(text('SELECT COUNT(*) FROM "user"')).scalar() == 0:
-            from flaskstart.utils.db_seed import seed_demo_data
-            seed_demo_data(force=True)
+        _seed_if_empty(db)

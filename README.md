@@ -62,11 +62,20 @@ Demo admin: `admin@gmail.com` / `123`
 
 Migrations run automatically during the build — you do not need to run them manually on Render.
 
+**Demo data loads automatically** on first startup when the database has no users (7 users, 25 posts, comments, likes, support messages). To re-seed manually in Render Shell: `python seed_db.py --force`
+
 ### 3. After first deploy
 
-The database starts empty. Choose one:
+If auto-seed ran, log in with demo accounts (password for all: `123`):
 
-**Option A — use your own account**
+| Account | Email |
+|---|---|
+| Admin | `admin@gmail.com` |
+| NoraTravel | `nora.travel@example.com` |
+| KaiRunner | `kai.runner@example.com` |
+| … | (see `db_seed.py` for full list) |
+
+**Option A — use your own account instead**
 
 1. Register on the live site
 2. In Render **Shell**, promote yourself to admin (replace the email):
@@ -82,15 +91,15 @@ with app.app_context():
     db.session.commit()
 ```
 
-**Option B — load demo content (portfolio showcase)**
+**Option B — reload demo content manually**
 
 In Render **Shell**:
 
 ```bash
-python seed_db.py
+python seed_db.py --force
 ```
 
-This creates categories, demo users, posts, comments, and likes. Admin login: `admin@gmail.com` / `123` — change this password if the site is public.
+This replaces all users/posts with the portfolio demo dataset. Admin login: `admin@gmail.com` / `123`.
 
 **Notes**
 

@@ -21,6 +21,10 @@ env/
 flaskstart/static/profile_pics/*
 !flaskstart/static/profile_pics/.gitkeep
 !flaskstart/static/profile_pics/default.png
+!flaskstart/static/profile_pics/481bcb822f1da8c0.jpg
+!flaskstart/static/profile_pics/896afe327891d570.jpg
+!flaskstart/static/profile_pics/953c10ccb35d2c8a.png
+!flaskstart/static/profile_pics/1fb7d9635c67173d.jpg
 
 # IDE / OS
 .vscode/
