@@ -43,8 +43,6 @@ Optional demo data (7 users, 25 posts, comments, likes):
 python seed_db.py
 ```
 
-Demo admin: `admin@gmail.com` / `123`
-
 ## Deploy to Render + Neon (free portfolio hosting)
 
 **Deploy from the `master` branch.** It has the current app (migrations, admin panel, comments, likes, tags, Render config). The `dev` branch is outdated and should not be used for production.
