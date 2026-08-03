@@ -11,11 +11,35 @@
         <div class="stat-card"><div class="stat-value">{{ stats.support_messages }}</div><div class="stat-label">Support</div></div>
     </div>
 
+    {% if pending_users %}
+    <h2 class="admin-section-title">Awaiting posting approval ({{ pending_users|length }})</h2>
+    <div class="card admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr><th>Username</th><th>Email</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for user in pending_users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <form action="{{ url_for('adminpanel.approve_posting', user_id=user.id) }}" method="POST">
+                            <button class="btn-primary-custom" type="submit">Allow posting</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
     <h2 class="admin-section-title">Users</h2>
     <div class="card admin-table-wrap">
         <table class="admin-table">
             <thead>
-                <tr><th>Username</th><th>Email</th><th>Role</th><th>Actions</th></tr>
+                <tr><th>Username</th><th>Email</th><th>Role</th><th>Can post</th><th>Actions</th></tr>
             </thead>
             <tbody>
                 {% for user in users %}
@@ -24,10 +48,23 @@
                     <td>{{ user.email }}</td>
                     <td><span class="chip chip-sm {% if user.is_admin %}chip-active{% endif %}">{{ user.role }}</span></td>
                     <td>
+                        {% if user.can_create_posts %}
+                            <span class="chip chip-sm chip-active">Yes</span>
+                        {% else %}
+                            <span class="chip chip-sm">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
                         <div class="btn-row" style="margin:0">
-                            <form action="{{ url_for('adminpanel.toggle_admin', user_id=user.id) }}" method="POST">
-                                <button class="btn-ghost" type="submit">Toggle admin</button>
+                            {% if not user.can_create_posts %}
+                            <form action="{{ url_for('adminpanel.approve_posting', user_id=user.id) }}" method="POST">
+                                <button class="btn-ghost" type="submit">Allow posting</button>
                             </form>
+                            {% elif not user.is_admin %}
+                            <form action="{{ url_for('adminpanel.revoke_posting', user_id=user.id) }}" method="POST">
+                                <button class="btn-ghost" type="submit">Revoke posting</button>
+                            </form>
+                            {% endif %}
                             {% if user.id != current_user.id %}
                             <form action="{{ url_for('adminpanel.delete_user', user_id=user.id) }}" method="POST">
                                 <button class="btn-danger-custom" type="submit">Delete</button>

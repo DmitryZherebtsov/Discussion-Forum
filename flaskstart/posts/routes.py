@@ -5,13 +5,14 @@ from flaskstart import db
 from flaskstart.models import Comment, Like, Post
 from flaskstart.posts.forms import CommentForm, PostForm
 from flaskstart.posts.utils import assign_tags
-from flaskstart.utils.permissions import can_manage_comment, can_manage_post
+from flaskstart.utils.permissions import can_manage_comment, can_manage_post, posting_required
 
 posts = Blueprint('posts', __name__)
 
 
 @posts.route("/post/new", methods=['GET', 'POST'])
 @login_required
+@posting_required
 def new_post():
     form = PostForm()
     if form.validate_on_submit():
@@ -46,6 +47,7 @@ def post(post_id):
 
 @posts.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
 @login_required
+@posting_required
 def update_post(post_id):
     post = Post.query.get_or_404(post_id)
     if not can_manage_post(post):

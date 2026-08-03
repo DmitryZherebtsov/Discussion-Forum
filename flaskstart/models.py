@@ -24,6 +24,7 @@ class User(db.Model, UserMixin):
     image_file = db.Column(db.String(64), nullable=False, default='default.png')
     password = db.Column(db.String(60), nullable=False)
     role = db.Column(db.String(20), nullable=False, default='user')
+    can_post = db.Column(db.Boolean, nullable=False, default=False)
 
     posts = db.relationship('Post', backref='author', lazy=True, cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='author', lazy=True, cascade='all, delete-orphan')
@@ -33,6 +34,10 @@ class User(db.Model, UserMixin):
     @property
     def is_admin(self):
         return self.role == 'admin'
+
+    @property
+    def can_create_posts(self):
+        return self.is_admin or self.can_post
 
     def get_reset_token(self):
         s = Seria(app.config['SECRET_KEY'])

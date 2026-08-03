@@ -31,3 +31,10 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('EMAIL_USER')
     MAIL_PASSWORD = os.environ.get('EMAIL_PASS')
+
+    # Only this email can be site admin (set on Render to your email)
+    ADMIN_EMAIL = (os.environ.get('ADMIN_EMAIL') or '').strip().lower()
+
+    # Demo seed: on by default for local SQLite, off when DATABASE_URL is set (Render/Neon)
+    _seed_default = 'false' if os.environ.get('DATABASE_URL') else 'true'
+    SEED_DEMO_DATA = os.environ.get('SEED_DEMO_DATA', _seed_default).lower() == 'true'

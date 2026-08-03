@@ -12,9 +12,12 @@ def client():
         'SQLALCHEMY_DATABASE_URI': 'sqlite://',
         'WTF_CSRF_ENABLED': False,
         'SECRET_KEY': 'test-secret-key',
+        'ADMIN_EMAIL': 'admin@test.com',
+        'SEED_DEMO_DATA': False,
     })
 
     with app.app_context():
+        db.drop_all()
         db.create_all()
         seed_categories()
         yield app.test_client()
@@ -22,11 +25,19 @@ def client():
         db.drop_all()
 
 
-def create_user(username, email, password='password123', role='user'):
+def create_user(username, email, password='password123', role='user', can_post=False):
     from flaskstart import bcrypt
 
+    if role == 'admin':
+        can_post = True
     hashed = bcrypt.generate_password_hash(password).decode('utf-8')
-    user = User(username=username, email=email, password=hashed, role=role)
+    user = User(
+        username=username,
+        email=email,
+        password=hashed,
+        role=role,
+        can_post=can_post,
+    )
     db.session.add(user)
     db.session.commit()
     return user
@@ -45,7 +56,13 @@ def admin_user(client):
 @pytest.fixture
 def regular_user(client):
     with app.app_context():
-        return create_user('regularuser', 'user@test.com')
+        return create_user('regularuser', 'user@test.com', can_post=True)
+
+
+@pytest.fixture
+def pending_user(client):
+    with app.app_context():
+        return create_user('pendinguser', 'pending@test.com', can_post=False)
 
 
 def test_register_and_login(client):
@@ -64,9 +81,30 @@ def test_register_and_login(client):
     assert b'Log out' in response.data
 
 
+def test_owner_registration_becomes_admin(client):
+    response = client.post('/register', data={
+        'username': 'owner',
+        'email': 'admin@test.com',
+        'password': 'password123',
+        'confirm_password': 'password123',
+    }, follow_redirects=True)
+    assert response.status_code == 200
+
+    with app.app_context():
+        user = User.query.filter_by(email='admin@test.com').first()
+        assert user.role == 'admin'
+        assert user.can_post is True
+
+
 def test_create_post_requires_login(client):
     response = client.get('/post/new', follow_redirects=True)
     assert b'Login' in response.data
+
+
+def test_create_post_requires_approval(client, pending_user):
+    login(client, 'pending@test.com')
+    response = client.get('/post/new', follow_redirects=True)
+    assert b'admin approval' in response.data
 
 
 def test_create_post_with_tags_and_category(client, regular_user):
@@ -84,6 +122,18 @@ def test_create_post_with_tags_and_category(client, regular_user):
         post = Post.query.filter_by(title='Test Post').first()
         assert post is not None
         assert len(post.tags) == 2
+
+
+def test_admin_can_approve_posting(client, admin_user, pending_user):
+    with app.app_context():
+        login(client, 'admin@test.com')
+        user = User.query.filter_by(email='pending@test.com').first()
+        response = client.post(
+            f'/admin_panel/user/{user.id}/approve_posting',
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert User.query.filter_by(email='pending@test.com').first().can_post is True
 
 
 def test_search_posts(client, regular_user):
@@ -135,6 +185,7 @@ def test_admin_panel_accessible_for_admin(client, admin_user):
 
 def test_promote_admin_accounts(client):
     with app.app_context():
+        app.config['ADMIN_EMAIL'] = 'admin@gmail.com'
         user = create_user('Admin', 'admin@gmail.com')
         assert user.role == 'user'
         promote_admin_accounts()

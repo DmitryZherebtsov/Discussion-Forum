@@ -3,7 +3,8 @@ import os
 from sqlalchemy import inspect, text
 
 
-def _seed_if_empty(db):
+def _seed_if_empty(app, db):
+    from flaskstart.utils.admin_access import sync_owner_admin
     from flaskstart.utils.db_seed import seed_categories, seed_demo_data
 
     seed_categories()
@@ -12,12 +13,15 @@ def _seed_if_empty(db):
     if not inspector.has_table('user'):
         return
 
-    if db.session.execute(text('SELECT COUNT(*) FROM "user"')).scalar() == 0:
+    user_count = db.session.execute(text('SELECT COUNT(*) FROM "user"')).scalar()
+    if user_count == 0 and app.config.get('SEED_DEMO_DATA'):
         seed_demo_data(force=True)
+
+    sync_owner_admin(app, db)
 
 
 def ensure_database(app, db):
-    """Create missing tables and seed demo data on an empty production database."""
+    """Create missing tables and optionally seed demo data on an empty database."""
     if app.config.get('TESTING'):
         return
 
@@ -30,7 +34,7 @@ def ensure_database(app, db):
 
         inspector = inspect(db.engine)
         if inspector.has_table('post'):
-            _seed_if_empty(db)
+            _seed_if_empty(app, db)
             return
 
         if inspector.has_table('alembic_version'):
@@ -44,4 +48,4 @@ def ensure_database(app, db):
         if not inspector.has_table('post'):
             db.create_all()
 
-        _seed_if_empty(db)
+        _seed_if_empty(app, db)

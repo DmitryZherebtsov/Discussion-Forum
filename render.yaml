@@ -15,6 +15,10 @@ services:
         sync: false
       - key: PROFILE_UPLOADS_ENABLED
         value: "false"
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: SEED_DEMO_DATA
+        value: "false"
       - key: EMAIL_USER
         sync: false
       - key: EMAIL_PASS

@@ -24,24 +24,27 @@ def seed_categories():
 
 
 def promote_admin_accounts():
-    for user in User.query.filter(
-        (User.username == 'Admin') | (User.email == 'admin@gmail.com')
-    ).all():
-        user.role = 'admin'
-    db.session.commit()
+    """Legacy helper for tests/local scripts. Prefer ADMIN_EMAIL + sync_owner_admin."""
+    from flaskstart import app
+    from flaskstart.utils.admin_access import sync_owner_admin
+
+    sync_owner_admin(app, db)
 
 
 def _password_hash():
     return bcrypt.generate_password_hash(DEMO_PASSWORD).decode('utf-8')
 
 
-def _create_user(username, email, image_file, role='user'):
+def _create_user(username, email, image_file, role='user', can_post=False):
+    if role == 'admin':
+        can_post = True
     user = User(
         username=username,
         email=email,
         password=_password_hash(),
         image_file=image_file,
         role=role,
+        can_post=can_post,
     )
     db.session.add(user)
     db.session.flush()
@@ -82,13 +85,13 @@ def seed_demo_data(force=False):
 
     seed_categories()
 
-    admin = _create_user('Admin', 'admin@gmail.com', PROFILE_PICS[0], role='admin')
-    nora = _create_user('NoraTravel', 'nora.travel@example.com', PROFILE_PICS[1])
-    kai = _create_user('KaiRunner', 'kai.runner@example.com', PROFILE_PICS[2])
-    luna = _create_user('LunaChef', 'luna.chef@example.com', PROFILE_PICS[3])
-    marco = _create_user('MarcoPhoto', 'marco.photo@example.com', PROFILE_PICS[0])
-    zoe = _create_user('ZoeDesign', 'zoe.design@example.com', PROFILE_PICS[1])
-    felix = _create_user('FelixMusic', 'felix.music@example.com', PROFILE_PICS[2])
+    admin = _create_user('Admin', 'admin@gmail.com', PROFILE_PICS[0], role='admin', can_post=True)
+    nora = _create_user('NoraTravel', 'nora.travel@example.com', PROFILE_PICS[1], can_post=True)
+    kai = _create_user('KaiRunner', 'kai.runner@example.com', PROFILE_PICS[2], can_post=True)
+    luna = _create_user('LunaChef', 'luna.chef@example.com', PROFILE_PICS[3], can_post=True)
+    marco = _create_user('MarcoPhoto', 'marco.photo@example.com', PROFILE_PICS[0], can_post=True)
+    zoe = _create_user('ZoeDesign', 'zoe.design@example.com', PROFILE_PICS[1], can_post=True)
+    felix = _create_user('FelixMusic', 'felix.music@example.com', PROFILE_PICS[2], can_post=True)
     db.session.commit()
 
     posts_data = [
@@ -191,7 +194,10 @@ def seed_demo_data(force=False):
         ))
 
     db.session.commit()
-    promote_admin_accounts()
+    from flaskstart import app
+    from flaskstart.utils.admin_access import sync_owner_admin
+
+    sync_owner_admin(app, db)
 
     print('Demo data seeded successfully.')
     print(f'Users: {User.query.count()}, Posts: {Post.query.count()}, '

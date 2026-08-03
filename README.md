@@ -9,6 +9,8 @@ Flask discussion forum — portfolio project with auth, posts, comments, likes, 
 - Comments and likes
 - Search and filter by tag/category
 - Role-based admin panel
+- **Posting approval** — new users must be approved before they can create posts
+- **Owner-only admin** — only `ADMIN_EMAIL` can be site admin
 - Flask-Migrate database migrations
 - Light/dark theme
 - pytest test suite
@@ -58,48 +60,21 @@ Demo admin: `admin@gmail.com` / `123`
 | `DATABASE_URL` | Neon connection string |
 | `SECRET_KEY` | long random string (Render can auto-generate) |
 | `PROFILE_UPLOADS_ENABLED` | `false` |
+| `ADMIN_EMAIL` | **your email** — only this account becomes admin |
+| `SEED_DEMO_DATA` | `false` for production (no public demo accounts) |
 | `EMAIL_USER` / `EMAIL_PASS` | optional, for password reset emails |
 
-Migrations run automatically during the build — you do not need to run them manually on Render.
-
-**Demo data loads automatically** on first startup when the database has no users (7 users, 25 posts, comments, likes, support messages). To re-seed manually in Render Shell: `python seed_db.py --force`
+Migrations run automatically during the build.
 
 ### 3. After first deploy
 
-If auto-seed ran, log in with demo accounts (password for all: `123`):
+1. Set `ADMIN_EMAIL` to the email you will register with
+2. Register on the live site with that exact email → you become **admin** automatically
+3. Other users can register but **cannot post** until you click **Allow posting** in Admin Panel
 
-| Account | Email |
-|---|---|
-| Admin | `admin@gmail.com` |
-| NoraTravel | `nora.travel@example.com` |
-| KaiRunner | `kai.runner@example.com` |
-| … | (see `db_seed.py` for full list) |
+Optional demo data for local/testing only — set `SEED_DEMO_DATA=true` and run `python seed_db.py --force`
 
-**Option A — use your own account instead**
-
-1. Register on the live site
-2. In Render **Shell**, promote yourself to admin (replace the email):
-
-```python
-from flaskstart import app, db
-from flaskstart.models import User
-from flaskstart.utils.db_seed import seed_categories
-with app.app_context():
-    seed_categories()
-    user = User.query.filter_by(email="your@email.com").one()
-    user.role = "admin"
-    db.session.commit()
-```
-
-**Option B — reload demo content manually**
-
-In Render **Shell**:
-
-```bash
-python seed_db.py --force
-```
-
-This replaces all users/posts with the portfolio demo dataset. Admin login: `admin@gmail.com` / `123`.
+**Do not** use demo admin `admin@gmail.com` / `123` on a public site.
 
 **Notes**
 
@@ -116,7 +91,7 @@ flask --app run:app db upgrade
 
 ## Admin access
 
-Users with `role = admin` can access `/admin_panel`.
+Only the user whose email matches `ADMIN_EMAIL` is admin. Approve posting for other users in `/admin_panel`.
 
 ## Tests
 

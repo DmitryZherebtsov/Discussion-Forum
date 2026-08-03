@@ -32,7 +32,9 @@
             <nav class="main-nav" data-main-nav>
                 <a href="{{ url_for('main.home') }}" class="nav-link">Home</a>
                 {% if current_user.is_authenticated %}
+                    {% if current_user.can_create_posts %}
                     <a href="{{ url_for('posts.new_post') }}" class="nav-link nav-link-accent">New Post</a>
+                    {% endif %}
                     <a href="{{ url_for('support_page.support') }}" class="nav-link">Support</a>
                     <a href="{{ url_for('users.account') }}" class="nav-link">Account</a>
                     {% if current_user.is_admin %}

@@ -6,6 +6,7 @@ from flaskstart.users.forms import (RegitrationForm, LoginForm, UpdateAccountFor
                                     RequestResetForm, ResetPasswordForm)
 from flaskstart.models import User, Post
 from flaskstart.users.utils import save_picture, send_reset_email
+from flaskstart.utils.admin_access import apply_owner_privileges, sync_owner_admin
 
 
 users = Blueprint('users', __name__) # instance of Blueprint
@@ -18,10 +19,25 @@ def register():
     form = RegitrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            password=hashed_password,
+            role='user',
+            can_post=False,
+        )
         db.session.add(user)
+        db.session.flush()
+        is_owner = apply_owner_privileges(user, app)
         db.session.commit()
-        flash(f'Your account has been created! You can login now by the name: {form.username.data}!', 'success')
+        if is_owner:
+            flash('Your admin account has been created. You can log in now.', 'success')
+        else:
+            flash(
+                f'Account created for {form.username.data}. '
+                'You can log in, but an admin must approve you before you can post.',
+                'success',
+            )
         return redirect(url_for('users.login'))
     return render_template('register.html', title='Register', form=form)
 
@@ -34,6 +50,8 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first() # беру першого юзера по мейлу який він ввів
         if user and bcrypt.check_password_hash(user.password, form.password.data):
+            apply_owner_privileges(user, app)
+            sync_owner_admin(app, db)
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('main.home'))
@@ -60,7 +78,9 @@ def account():
         elif form.picture.data:
             flash('Profile picture uploads are disabled on this server.', 'warning')
         current_user.username = form.username.data
-        current_user.email = form.email.data 
+        current_user.email = form.email.data
+        apply_owner_privileges(current_user, app)
+        sync_owner_admin(app, db)
         db.session.commit()
         flash(f'Your super cool account has been updated!', 'success')
         return redirect(url_for('users.account'))

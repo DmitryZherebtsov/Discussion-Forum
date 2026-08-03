@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 
 from flaskstart import db
 from flaskstart.models import Comment, Post, Support, User
-from flaskstart.utils.db_seed import promote_admin_accounts
+from flaskstart.utils.admin_access import apply_owner_privileges, sync_owner_admin
 from flaskstart.utils.permissions import admin_required
 
 adminpanel = Blueprint('adminpanel', __name__)
@@ -20,6 +20,7 @@ def admin_panel():
         'support_messages': Support.query.count(),
     }
     users = User.query.order_by(User.username).all()
+    pending_users = [user for user in users if not user.can_create_posts]
     posts = Post.query.order_by(Post.date_posted.desc()).all()
     comments = Comment.query.order_by(Comment.date_posted.desc()).all()
     messages = Support.query.order_by(Support.date_posted.desc()).all()
@@ -28,6 +29,7 @@ def admin_panel():
         title="Admin Panel",
         stats=stats,
         users=users,
+        pending_users=pending_users,
         posts=posts,
         comments=comments,
         messageRead=messages,
@@ -48,17 +50,31 @@ def delete_user(user_id):
     return redirect(url_for('adminpanel.admin_panel'))
 
 
-@adminpanel.route("/admin_panel/user/<int:user_id>/toggle_admin", methods=['POST'])
+@adminpanel.route("/admin_panel/user/<int:user_id>/approve_posting", methods=['POST'])
 @login_required
 @admin_required
-def toggle_admin(user_id):
+def approve_posting(user_id):
     user = User.query.get_or_404(user_id)
-    if user.id == current_user.id:
-        flash('You cannot change your own role.', 'warning')
+    if user.is_admin:
+        flash('Admins can always post.', 'info')
         return redirect(url_for('adminpanel.admin_panel'))
-    user.role = 'user' if user.is_admin else 'admin'
+    user.can_post = True
     db.session.commit()
-    flash(f'{user.username} is now {"an admin" if user.is_admin else "a regular user"}.', 'info')
+    flash(f'{user.username} can now create posts.', 'success')
+    return redirect(url_for('adminpanel.admin_panel'))
+
+
+@adminpanel.route("/admin_panel/user/<int:user_id>/revoke_posting", methods=['POST'])
+@login_required
+@admin_required
+def revoke_posting(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.is_admin:
+        flash('You cannot revoke posting for the site admin.', 'warning')
+        return redirect(url_for('adminpanel.admin_panel'))
+    user.can_post = False
+    db.session.commit()
+    flash(f'Posting revoked for {user.username}.', 'info')
     return redirect(url_for('adminpanel.admin_panel'))
 
 
@@ -92,13 +108,4 @@ def admin_delete_support(message_id):
     db.session.delete(message)
     db.session.commit()
     flash('Support message deleted.', 'success')
-    return redirect(url_for('adminpanel.admin_panel'))
-
-
-@adminpanel.route("/admin_panel/promote_legacy_admins", methods=['POST'])
-@login_required
-@admin_required
-def promote_legacy_admins():
-    promote_admin_accounts()
-    flash('Legacy admin accounts updated.', 'info')
     return redirect(url_for('adminpanel.admin_panel'))
